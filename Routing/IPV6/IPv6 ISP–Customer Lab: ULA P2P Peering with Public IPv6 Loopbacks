@@ -1,0 +1,287 @@
+IPv6 ISP–Customer Lab: ULA P2P Peering with Public IPv6 Loopbacks
+📌 Project Overview
+
+This lab demonstrates a basic ISP–Customer IPv6 architecture where:
+
+ISP and Customer are connected using a ULA IPv6 point-to-point link.
+Both ISP and Customer have a Public IPv6 address on Loopback0.
+Static routes are configured on both routers.
+Public IPv6 Loopback addresses are reachable through the private/ULA transit link.
+The lab simulates a simplified real-world ISP Customer connectivity scenario.
+
+Note: IPv6 does not use RFC1918-style private addresses like IPv4. This lab uses ULA (Unique Local Address) from FC00::/7, specifically the fd00::/8 range, for the ISP–Customer P2P link.
+
+🗺️ Network Topology
+                     ISP Router
+                    R1 / AS65001
+                Lo0: 2001:db8:1::1/128
+                       |
+                       |
+              ULA IPv6 P2P Link
+                       |
+              fd00:100::1/64
+                       |
+              fd00:100::2/64
+                       |
+                       |
+                  Customer Router
+                    R2 / AS65002
+                Lo0: 2001:db8:2::1/128
+🧩 IP Addressing Plan
+Device	Interface	IPv6 Address	Purpose
+ISP R1	Loopback0	2001:db8:1::1/128	ISP Public IPv6
+ISP R1	G0/0	fd00:100::1/64	ISP–Customer P2P
+Customer R2	G0/0	fd00:100::2/64	Customer–ISP P2P
+Customer R2	Loopback0	2001:db8:2::1/128	Customer Public IPv6
+Addressing Concept
+Public IPv6
+     ↓
+Loopback Interfaces
+     ↓
+2001:db8:1::1/128
+2001:db8:2::1/128
+
+ULA IPv6
+     ↓
+P2P Transit Link
+     ↓
+fd00:100::1/64
+fd00:100::2/64
+⚙️ ISP Router Configuration
+Enable IPv6 Routing
+R1(config)# ipv6 unicast-routing
+Configure P2P Interface
+R1(config)# interface g0/0
+R1(config-if)# ipv6 address fd00:100::1/64
+R1(config-if)# no shutdown
+Configure Public IPv6 Loopback
+R1(config)# interface loopback0
+R1(config-if)# ipv6 address 2001:db8:1::1/128
+⚙️ Customer Router Configuration
+Enable IPv6 Routing
+R2(config)# ipv6 unicast-routing
+Configure P2P Interface
+R2(config)# interface g0/0
+R2(config-if)# ipv6 address fd00:100::2/64
+R2(config-if)# no shutdown
+Configure Public IPv6 Loopback
+R2(config)# interface loopback0
+R2(config-if)# ipv6 address 2001:db8:2::1/128
+🛣️ Static Routing
+Customer → ISP
+
+The Customer router needs a route toward the ISP's public Loopback address.
+
+R2(config)# ipv6 route 2001:db8:1::1/128 fd00:100::1
+
+Meaning:
+
+Destination:
+2001:db8:1::1/128
+
+Next-Hop:
+fd00:100::1
+ISP → Customer
+
+The ISP router needs a route toward the Customer's public Loopback address.
+
+R1(config)# ipv6 route 2001:db8:2::1/128 fd00:100::2
+
+Meaning:
+
+Destination:
+2001:db8:2::1/128
+
+Next-Hop:
+fd00:100::2
+🔄 Packet Flow
+
+When the Customer router sends traffic toward the ISP's public IPv6:
+
+R2 Loopback
+2001:db8:2::1
+       |
+       | Routing Lookup
+       ↓
+fd00:100::1
+       |
+       ↓
+ISP R1 G0/0
+       |
+       ↓
+R1 Loopback
+2001:db8:1::1
+
+The important concept is:
+
+The source and destination are Public IPv6 addresses, while the ISP–Customer transit network uses ULA IPv6 addresses.
+
+🧪 Connectivity Testing
+1. Verify IPv6 Interfaces
+ISP
+R1# show ipv6 interface brief
+Customer
+R2# show ipv6 interface brief
+
+Expected interfaces:
+
+G0/0       fd00:100::1/64
+Loopback0  2001:db8:1::1/128
+
+and:
+
+G0/0       fd00:100::2/64
+Loopback0  2001:db8:2::1/128
+2. Test P2P Connectivity
+
+From Customer:
+
+R2# ping ipv6 fd00:100::1
+
+Expected:
+
+!!!!!
+
+This confirms that the ISP–Customer IPv6 transit link is operational.
+
+3. Test Public IPv6 Reachability
+
+From Customer:
+
+R2# ping ipv6 2001:db8:1::1
+
+From ISP:
+
+R1# ping ipv6 2001:db8:2::1
+
+Both should successfully reach the remote Loopback.
+
+🔍 Routing Verification
+
+Check the IPv6 routing table:
+
+R1# show ipv6 route
+
+The ISP should have a static route similar to:
+
+S  2001:DB8:2::1/128
+   [1/0] via FD00:100::2
+
+Customer:
+
+R2# show ipv6 route
+
+Expected:
+
+S  2001:DB8:1::1/128
+   [1/0] via FD00:100::1
+🔎 Neighbor Discovery Verification
+
+IPv6 does not use ARP.
+
+Instead, IPv6 uses Neighbor Discovery Protocol (NDP) through ICMPv6.
+
+Verify neighbors with:
+
+R1# show ipv6 neighbors
+
+and:
+
+R2# show ipv6 neighbors
+
+This helps verify Layer-2 neighbor discovery on the P2P link.
+
+🧠 Key Networking Concepts Demonstrated
+
+This lab demonstrates:
+
+IPv6 128-bit addressing
+IPv6 hexadecimal notation
+ULA IPv6 addressing
+/64 P2P subnet
+/128 Loopback addressing
+IPv6 Loopback interfaces
+IPv6 static routing
+IPv6 next-hop routing
+IPv6 Neighbor Discovery
+ICMPv6
+ISP–Customer connectivity
+Public IPv6 over ULA transit
+Basic IPv6 troubleshooting
+🌐 Real-World ISP Perspective
+
+In a production ISP environment, the architecture can become more hierarchical.
+
+For example, an ISP may allocate a customer prefix such as:
+
+2001:db8:2000::/48
+
+The customer can then divide it into multiple /64 LAN prefixes:
+
+LAN 1
+2001:db8:2000:1::/64
+
+LAN 2
+2001:db8:2000:2::/64
+
+LAN 3
+2001:db8:2000:3::/64
+
+The ISP would normally maintain reachability toward the customer's allocated prefix rather than only a single /128 Loopback.
+
+Production environments may also use:
+
+OSPFv3
+IS-IS for IPv6
+eBGP
+iBGP
+IPv6 address-family
+Prefix filtering
+Route policies
+BGP communities
+Customer prefix delegation
+Dual-stack deployment
+🚀 Next Lab
+
+The next stage of this project will extend this topology from a simple static-routing design toward an ISP-level IPv6 architecture.
+
+Planned progression:
+
+Lab 01
+IPv6 Addressing
+      ↓
+Lab 02
+IPv6 Static Routing
+      ↓
+Lab 03
+IPv6 NDP + ICMPv6
+      ↓
+Lab 04
+OSPFv3
+      ↓
+Lab 05
+Dual Stack IPv4 + IPv6
+      ↓
+Lab 06
+IPv6 eBGP
+      ↓
+Lab 07
+IPv6 iBGP
+      ↓
+Lab 08
+ISP Customer Prefix Routing
+      ↓
+Lab 09
+IPv6 Route Filtering & Policy
+      ↓
+Lab 10
+ISP-Level IPv6 Troubleshooting
+🎯 Learning Objective
+
+The main objective of this lab is to understand how an ISP and customer router can establish IPv6 connectivity using a ULA-based point-to-point transit network, while maintaining public IPv6 addressing on Loopback interfaces and exchanging reachability through static routes.
+
+This provides the foundation for more advanced ISP IPv6 routing, BGP, prefix delegation, and dual-stack network designs.
+
+📌 Important Note
+
+The 2001:db8::/32 prefix is reserved for documentation and examples. It is intentionally used in this lab and should not be used as real Internet-routable addressing in a production network.
