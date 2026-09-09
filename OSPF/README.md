@@ -1,6 +1,7 @@
 <p align="center">
   <img width="700" height="478" alt="image" src="https://github.com/user-attachments/assets/afce666e-a74e-4d2a-9c0a-07ae814bd5b0" />
 </p>
+
 # MikroTik OSPF Multi-Area Lab (IPv4 + IPv6)
 
 This lab demonstrates a complete **OSPF Multi-Area** design using **MikroTik RouterOS v7**, running both **OSPFv2 (IPv4)** and **OSPFv3 (IPv6)** simultaneously in an ISP-style topology.
