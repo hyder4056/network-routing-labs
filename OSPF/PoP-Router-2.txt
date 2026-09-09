@@ -1,0 +1,119 @@
+PoP-Router-2:
+
+[admin@PoP-Router-2] > /system identity print
+  name: PoP-Router-2
+  
+[admin@PoP-Router-2] > /ip address print
+Flags: D - DYNAMIC
+Columns: ADDRESS, NETWORK, INTERFACE, VRF
+#   ADDRESS             NETWORK        INTERFACE  VRF
+;;; AGG-Router-2
+0   172.25.1.30/30      172.25.1.28    ether10    main
+;;; AGG-Router-1
+1   172.25.1.34/30      172.25.1.32    ether8     main
+;;; loopback
+2   172.25.0.6/32       172.25.0.6     lo         main
+;;; MGMT
+3   192.168.172.106/24  192.168.172.0  ether1     main
+4 D 192.168.172.133/24  192.168.172.0  ether1     main
+
+[admin@PoP-Router-2] > /ipv6 address print
+Flags: D - DYNAMIC; G - GLOBAL, L - LINK-LOCAL
+Columns: ADDRESS, INTERFACE, VRF, ADVERTISE
+ #    ADDRESS                  INTERFACE  VRF   ADVERTISE
+;;; Loopback
+ 0  G fc02:49c0::6/128         lo         main  no
+;;; AGG-Router-2
+ 1  G fc02:49c0:1::1e/126      ether10    main  no
+;;; AGG-Router-1
+ 2  G fc02:49c0::22/126        ether8     main  no
+ 3 D  ::1/128                  lo         main  no
+ 4 DL fe80::5200:ff:fe05:1/64  ether2     main  no
+ 5 DL fe80::5200:ff:fe05:0/64  ether1     main  no
+ 6 DL fe80::5200:ff:fe05:2/64  ether3     main  no
+ 7 DL fe80::5200:ff:fe05:3/64  ether4     main  no
+ 8 DL fe80::5200:ff:fe05:4/64  ether5     main  no
+ 9 DL fe80::5200:ff:fe05:5/64  ether6     main  no
+10 DL fe80::5200:ff:fe05:6/64  ether7     main  no
+11 DL fe80::5200:ff:fe05:7/64  ether8     main  no
+12 DL fe80::5200:ff:fe05:8/64  ether9     main  no
+13 DL fe80::5200:ff:fe05:9/64  ether10    main  no
+
+[admin@PoP-Router-2] > /routing ospf instance print
+Flags: X - disabled, I - inactive
+ 0   name="DEFAULT_V2" version=2 vrf=main router-id=MAIN_RID
+
+ 1   name="DEFAULT_V3" version=3 vrf=main router-id=MAIN_RID
+[admin@PoP-Router-2] > /routing ospf area print
+Flags: X - disabled, I - inactive, D - dynamic; T - transit-capable
+ 0    name="AREA2_V2" instance=DEFAULT_V2 area-id=0.0.0.2 type=default
+
+ 1    name="AREA2_V3" instance=DEFAULT_V3 area-id=0.0.0.2 type=default
+ 
+[admin@PoP-Router-2] > /routing ospf interface-template print
+Flags: X - disabled, I - inactive
+ 0   area=AREA2_V2 interfaces=lo instance-id=0 type=broadcast retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s priority=128 cost=1 passive
+
+ 1   area=AREA2_V3 interfaces=lo instance-id=0 type=broadcast retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s priority=128 cost=1 passive
+
+ 2   area=AREA2_V2 interfaces=ether8 instance-id=0 type=ptp retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s priority=128 cost=1
+
+ 3   area=AREA2_V3 interfaces=ether8 instance-id=0 type=ptp retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s priority=128 cost=1
+
+ 4   area=AREA2_V2 interfaces=ether10 instance-id=0 type=ptp retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s priority=128 cost=1
+
+ 5   area=AREA2_V3 interfaces=ether10 instance-id=0 type=ptp retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s priority=128 cost=1
+ 
+[admin@PoP-Router-2] > /routing ospf interface print
+Flags: D - dynamic
+ 0 D interface=lo address=172.25.0.6 area=AREA2_V2 state=passive network-type=broadcast cost=1 priority=128 use-bfd=no retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s
+
+ 1 D interface=ether8 address=172.25.1.34/30 area=AREA2_V2 state=ptp network-type=ptp cost=1 use-bfd=no retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s
+
+ 2 D interface=ether10 address=172.25.1.30/30 area=AREA2_V2 state=ptp network-type=ptp cost=1 use-bfd=no retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s
+
+ 3 D interface=lo address=::1 area=AREA2_V3 state=passive network-type=broadcast cost=1 priority=128 use-bfd=no retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s
+
+ 4 D interface=ether8 address=fe80::5200:ff:fe05:7/64 area=AREA2_V3 state=ptp network-type=ptp cost=1 use-bfd=no retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s
+
+ 5 D interface=ether10 address=fe80::5200:ff:fe05:9/64 area=AREA2_V3 state=ptp network-type=ptp cost=1 use-bfd=no retransmit-interval=5s transmit-delay=1s hello-interval=10s dead-interval=40s
+ 
+[admin@PoP-Router-2] > /routing ospf neighbor print
+Flags: V - virtual; D - dynamic
+ 0  D instance=DEFAULT_V2 area=AREA2_V2 interface=ether8 address=172.25.1.33 router-id=172.25.0.3 state="Full" state-changes=5 adjacency=1h22m32s timeout=38s
+
+ 1  D instance=DEFAULT_V2 area=AREA2_V2 interface=ether10 address=172.25.1.29 router-id=172.25.0.4 state="Full" state-changes=6 adjacency=1h22m31s timeout=39s
+
+ 2  D instance=DEFAULT_V3 area=AREA2_V3 interface=ether8 address=fe80::5200:ff:fe03:7 router-id=172.25.0.3 state="Full" state-changes=5 adjacency=1h22m30s timeout=40s
+
+ 3  D instance=DEFAULT_V3 area=AREA2_V3 interface=ether10 address=fe80::5200:ff:fe04:9 router-id=172.25.0.4 state="Full" state-changes=5 adjacency=1h22m29s timeout=31s
+ 
+[admin@PoP-Router-2] > /ip route print
+Flags: D - DYNAMIC; A - ACTIVE; c - CONNECT, o - OSPF, d - DHCP; + - ECMP
+Columns: DST-ADDRESS, GATEWAY, ROUTING-TABLE, DISTANCE
+     DST-ADDRESS       GATEWAY              ROUTING-TABLE  DISTANCE
+DAd  0.0.0.0/0         192.168.172.2        main                  1
+DAo+ 172.25.0.1/32     172.25.1.33%ether8   main                110
+DAo+ 172.25.0.1/32     172.25.1.29%ether10  main                110
+DAo+ 172.25.0.2/32     172.25.1.33%ether8   main                110
+DAo+ 172.25.0.2/32     172.25.1.29%ether10  main                110
+DAo  172.25.0.3/32     172.25.1.33%ether8   main                110
+DAo  172.25.0.4/32     172.25.1.29%ether10  main                110
+DAo+ 172.25.0.5/32     172.25.1.33%ether8   main                110
+DAo+ 172.25.0.5/32     172.25.1.29%ether10  main                110
+DAc  172.25.0.6/32     lo                   main                  0
+DAo+ 172.25.1.0/30     172.25.1.33%ether8   main                110
+DAo+ 172.25.1.0/30     172.25.1.29%ether10  main                110
+DAo  172.25.1.4/30     172.25.1.33%ether8   main                110
+DAo  172.25.1.8/30     172.25.1.29%ether10  main                110
+DAo  172.25.1.12/30    172.25.1.29%ether10  main                110
+DAo  172.25.1.16/30    172.25.1.33%ether8   main                110
+DAo+ 172.25.1.20/30    172.25.1.33%ether8   main                110
+DAo+ 172.25.1.20/30    172.25.1.29%ether10  main                110
+DAo  172.25.1.24/30    172.25.1.33%ether8   main                110
+DAc  172.25.1.28/30    ether10              main                  0
+DAc  172.25.1.32/30    ether8               main                  0
+DAo  172.25.1.36/30    172.25.1.29%ether10  main                110
+DAc+ 192.168.172.0/24  ether1               main                  0
+DAc+ 192.168.172.0/24  ether1               main                  0
+
