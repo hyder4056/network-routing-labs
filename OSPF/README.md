@@ -1,3 +1,5 @@
+<img width="934" height="638" alt="image" src="https://github.com/user-attachments/assets/afce666e-a74e-4d2a-9c0a-07ae814bd5b0" />
+
 # MikroTik OSPF Multi-Area Lab (IPv4 + IPv6)
 
 This lab demonstrates a complete **OSPF Multi-Area** design using **MikroTik RouterOS v7**, running both **OSPFv2 (IPv4)** and **OSPFv3 (IPv6)** simultaneously in an ISP-style topology.
@@ -39,7 +41,7 @@ Configure OSPF across multiple areas so that all Loopback and point-to-point net
 
 ### IPv6 Addressing
 - Loopbacks: `fc02:49c0::x/128`
-- Point-to-point links use `fc02:49c0::/126` and `2402:49c0:0:1::/126` prefixes
+- Point-to-point links use `fc02:49c0::/126`
 
 ---
 
@@ -49,7 +51,22 @@ Configure OSPF across multiple areas so that all Loopback and point-to-point net
 - `DEFAULT_V2` → OSPFv2 (IPv4)
 - `DEFAULT_V3` → OSPFv3 (IPv6)
 
-Both instances use a named Router ID (`MAIN_RID`).
+## Router ID Configuration Method
+
+In this lab we used the **Router ID** object method (as shown in the video):
+
+1. Go to **Routing → Router ID**
+2. Create a named Router ID (example: `MAIN-RID` = `172.25.0.1`)
+3. Then select this named Router ID inside the OSPF Instance
+
+### Why this method instead of putting the ID directly in the Instance?
+
+| Method                        | Advantage                                      | Disadvantage                          |
+|-------------------------------|------------------------------------------------|---------------------------------------|
+| Directly in OSPF Instance     | Faster for small labs                          | Hard to manage when many instances exist |
+| Separate Router ID object     | Can be reused in OSPF, BGP, etc.               | One extra step                        |
+|                               | Change ID in one place → updates everywhere    |                                       |
+|                               | Cleaner and professional approach              |                                       |
 
 ### Areas
 - **Area 0** → Backbone (Core + AGG)
@@ -94,3 +111,21 @@ Both instances use a named Router ID (`MAIN_RID`).
 
 **Neighbor Status:**
 All OSPF neighbors are in Full state (both OSPFv2 and OSPFv3).
+
+
+## 📌 Lab Overview & References
+
+* **Lab Name:** Multi-Area OSPF Network Architecture
+* **Emulation Platform:** EVE-NG
+* **Areas Covered:** 
+  * Area 0 (Backbone Area)
+  * Area 1 (Stub / Edge Area)
+  * Area 2 (Stub / Edge Area)
+* **IP Addressing Scheme:** Dual-stack IPv4 & IPv6
+
+---
+
+## 🔗 Credits & Reference
+
+This lab was constructed for practical learning and reference, based on the video tutorial by **Mohammad Belal Hossain**.
+* **Instructor:** Mohammad Belal Hossain
