@@ -1,35 +1,96 @@
-# MikroTik OSPF Multi-Area Lab (ISP Style)
+# MikroTik OSPF Multi-Area Lab (IPv4 + IPv6)
 
-This lab shows OSPF Multi-Area configuration using MikroTik RouterOS v7.
+This lab demonstrates a complete **OSPF Multi-Area** design using **MikroTik RouterOS v7**, running both **OSPFv2 (IPv4)** and **OSPFv3 (IPv6)** simultaneously in an ISP-style topology.
 
-## Topology Overview
+**Lab Goal:**  
+Configure OSPF across multiple areas so that all Loopback and point-to-point networks (both IPv4 and IPv6) are fully reachable from every router.
 
-- Core Routers → Area 0 (Backbone)
-- Aggregation Routers → ABR (Area 0 + Area 1/2)
-- PoP Routers → Only their own Area
+---
 
-## Devices
+## Topology
 
-| Device        | Role     | Area        | Loopback      |
-|---------------|----------|-------------|---------------|
-| Core-Router-1 | Backbone | Area 0      | 172.25.0.1/32 |
-| Core-Router-2 | Backbone | Area 0      | 172.25.0.2/32 |
-| Agg-Router-1  | ABR      | Area 0 + 1  | 172.25.0.3/32 |
-| Agg-Router-2  | ABR      | Area 0 + 2  | 172.25.0.4/32 |
-| PoP-Router-1  | Internal | Area 1 only | 172.25.0.5/32 |
-| PoP-Router-2  | Internal | Area 2 only | 172.25.0.6/32 |
+| Device         | Role              | OSPF Areas          | IPv4 Loopback    | IPv6 Loopback       |
+|----------------|-------------------|---------------------|------------------|---------------------|
+| Core-Router-1  | Backbone          | Area 0              | 172.25.0.1/32    | fc02:49c0::1/128    |
+| Core-Router-2  | Backbone          | Area 0              | 172.25.0.2/32    | fc02:49c0::2/128    |
+| AGG-Router-1   | ABR               | Area 0 + 1 + 2      | 172.25.0.3/32    | fc02:49c0::3/128    |
+| AGG-Router-2   | ABR               | Area 0 + 1 + 2      | 172.25.0.4/32    | fc02:49c0::4/128    |
+| PoP-Router-1   | Internal Router   | Area 1 only         | 172.25.0.5/32    | fc02:49c0::5/128    |
+| PoP-Router-2   | Internal Router   | Area 2 only         | 172.25.0.6/32    | fc02:49c0::6/128    |
 
-## Important Lesson
+---
 
-PoP routers must have **only their own Area**.
+## Addressing Plan
 
-- PoP-1 → Only Area 1
-- PoP-2 → Only Area 2
+### IPv4 Point-to-Point Links
 
-If you create both Area 1 and Area 2 on PoP routers, Neighbor becomes Full but routes do not install.
+| Link                        | Network          | Side A              | Side B              |
+|----------------------------|------------------|---------------------|---------------------|
+| Core-1 ↔ Core-2            | 172.25.1.0/30    | 172.25.1.1          | 172.25.1.2          |
+| Core-1 ↔ AGG-1             | 172.25.1.4/30    | 172.25.1.5          | 172.25.1.6          |
+| Core-1 ↔ AGG-2             | 172.25.1.12/30   | 172.25.1.13         | 172.25.1.14         |
+| Core-2 ↔ AGG-1             | 172.25.1.16/30   | 172.25.1.17         | 172.25.1.18         |
+| Core-2 ↔ AGG-2             | 172.25.1.8/30    | 172.25.1.9          | 172.25.1.10         |
+| AGG-1 ↔ AGG-2              | 172.25.1.20/30   | 172.25.1.21         | 172.25.1.22         |
+| AGG-1 ↔ PoP-1              | 172.25.1.24/30   | 172.25.1.25         | 172.25.1.26         |
+| AGG-1 ↔ PoP-2              | 172.25.1.32/30   | 172.25.1.33         | 172.25.1.34         |
+| AGG-2 ↔ PoP-1              | 172.25.1.36/30   | 172.25.1.37         | 172.25.1.38         |
+| AGG-2 ↔ PoP-2              | 172.25.1.28/30   | 172.25.1.29         | 172.25.1.30         |
 
-## How to Verify
+### IPv6 Addressing
+- Loopbacks: `fc02:49c0::x/128`
+- Point-to-point links use `fc02:49c0::/126` and `2402:49c0:0:1::/126` prefixes
 
-```bash
-/routing ospf neighbor print
-/ip route print where protocol=ospf
+---
+
+## OSPF Design
+
+### Instances
+- `DEFAULT_V2` → OSPFv2 (IPv4)
+- `DEFAULT_V3` → OSPFv3 (IPv6)
+
+Both instances use a named Router ID (`MAIN_RID`).
+
+### Areas
+- **Area 0** → Backbone (Core + AGG)
+- **Area 1** → PoP-1
+- **Area 2** → PoP-2
+
+### Interface Templates
+| Interface Type       | Network Type | Passive |
+|----------------------|--------------|---------|
+| Loopback (`lo`)      | broadcast    | Yes     |
+| Router-to-Router     | ptp          | No      |
+
+---
+
+## Verification Results
+
+- Core-Router-1 → PoP-Router-2 
+- **ping 172.25.0.6 src-address=172.25.0.1 count=5**
+- Result: sent=5 received=5 packet-loss=0%
+
+
+- PoP-Router-2 → Core-Router-1
+- **ping 172.25.0.1 src-address=172.25.0.6 count=5**
+- Result: sent=5 received=5 packet-loss=0%
+- Traceroute (both directions) also successful with 2 hops.
+
+
+**IPv6 Connectivity Test**  
+- Core-Router-1 → PoP-Router-2  
+-** ping fc02:49c0::6  **
+- Result: sent=5 received=5 packet-loss=0%  
+
+
+- PoP-Router-2 → Core-Router-1
+- **ping fc02:49c0::1**
+- Result: sent=5 received=5 packet-loss=0%
+
+
+- Routing Table Check
+- All Loopbacks (172.25.0.1 to 172.25.0.6) are present in the routing table with OSPF distance 110.
+
+
+**Neighbor Status:**
+All OSPF neighbors are in Full state (both OSPFv2 and OSPFv3).
