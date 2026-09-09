@@ -1,5 +1,6 @@
-<img width="934" height="638" alt="image" src="https://github.com/user-attachments/assets/afce666e-a74e-4d2a-9c0a-07ae814bd5b0" />
-
+<p align="center">
+  <img width="700" height="478" alt="image" src="https://github.com/user-attachments/assets/afce666e-a74e-4d2a-9c0a-07ae814bd5b0" />
+</p>
 # MikroTik OSPF Multi-Area Lab (IPv4 + IPv6)
 
 This lab demonstrates a complete **OSPF Multi-Area** design using **MikroTik RouterOS v7**, running both **OSPFv2 (IPv4)** and **OSPFv3 (IPv6)** simultaneously in an ISP-style topology.
@@ -81,51 +82,52 @@ In this lab we used the **Router ID** object method (as shown in the video):
 
 ---
 
-## Verification Results
+---
 
-- Core-Router-1 → PoP-Router-2 
-- **ping 172.25.0.6 src-address=172.25.0.1 count=5**
-- Result: sent=5 received=5 packet-loss=0%
+## 🧪 Verification & Test Results
 
+> **Status:** `ALL TESTS PASSED` (100% Reachability)
 
-- PoP-Router-2 → Core-Router-1
-- **ping 172.25.0.1 src-address=172.25.0.6 count=5**
-- Result: sent=5 received=5 packet-loss=0%
-- Traceroute (both directions) also successful with 2 hops.
+### 📡 Ping & Traceroute Verification
 
+* **IPv4 End-to-End Connectivity**
+  * `Core-Router-1` ➔ `PoP-Router-2`
+    ```routeros
+    ping 172.25.0.6 src-address=172.25.0.1 count=5
+    # Result: sent=5 received=5 packet-loss=0%
+    ```
+  * `PoP-Router-2` ➔ `Core-Router-1`
+    ```routeros
+    ping 172.25.0.1 src-address=172.25.0.6 count=5
+    # Result: sent=5 received=5 packet-loss=0%
+    ```
+  * **Traceroute:** Successful bi-directional trace complete within **2 hops**.
 
-**IPv6 Connectivity Test**  
-- Core-Router-1 → PoP-Router-2  
--** ping fc02:49c0::6  **
-- Result: sent=5 received=5 packet-loss=0%  
+* **IPv6 Dual-Stack Reachability**
+  * `Core-Router-1` ➔ `PoP-Router-2`: `ping fc02:49c0::6` *(5/5 received, 0% loss)*
+  * `PoP-Router-2` ➔ `Core-Router-1`: `ping fc02:49c0::1` *(5/5 received, 0% loss)*
 
+### 📊 Routing & Adjacency Status
 
-- PoP-Router-2 → Core-Router-1
-- **ping fc02:49c0::1**
-- Result: sent=5 received=5 packet-loss=0%
+| Parameter | Observed Status | Verification Summary |
+| :--- | :---: | :--- |
+| **Loopback Routes** | `172.25.0.1` – `172.25.0.6` | Active in Routing Table (OSPF Distance: `110`) |
+| **OSPFv2 Neighbors** | `FULL` | All IPv4 adjacencies established |
+| **OSPFv3 Neighbors** | `FULL` | All IPv6 adjacencies established |
 
+---
 
-- Routing Table Check
-- All Loopbacks (172.25.0.1 to 172.25.0.6) are present in the routing table with OSPF distance 110.
+## 📌 Lab Overview & Details
 
-
-**Neighbor Status:**
-All OSPF neighbors are in Full state (both OSPFv2 and OSPFv3).
-
-
-## 📌 Lab Overview & References
-
-* **Lab Name:** Multi-Area OSPF Network Architecture
-* **Emulation Platform:** EVE-NG
-* **Areas Covered:** 
-  * Area 0 (Backbone Area)
-  * Area 1 (Stub / Edge Area)
-  * Area 2 (Stub / Edge Area)
-* **IP Addressing Scheme:** Dual-stack IPv4 & IPv6
+| Attribute | Configuration Details |
+| :--- | :--- |
+| **Lab Name** | Multi-Area OSPF Network Architecture |
+| **Platform** | EVE-NG Emulation |
+| **OSPF Areas** | `Area 0` (Backbone) • `Area 1` • `Area 2` (Stub/Edge) |
+| **Addressing** | Dual-Stack IPv4 & IPv6 Architecture |
 
 ---
 
 ## 🔗 Credits & Reference
 
-This lab was constructed for practical learning and reference, based on the video tutorial by **Mohammad Belal Hossain**.
-* **Instructor:** Mohammad Belal Hossain
+> **Acknowledgment:** This laboratory framework was constructed for technical research and practical implementation based on guidance by **Mohammad Belal Hossain**.
